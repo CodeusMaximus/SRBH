@@ -239,18 +239,22 @@ export default function BookAppointmentModal({
                     =========================================== */}
                     <div
                         className="
-                            pointer-events-none
+                            pointer-events-auto
                             fixed
                             inset-0
                             z-[310]
                             overflow-x-hidden
                             overflow-y-auto
-                            overscroll-contain
+                            overscroll-y-contain
+                            touch-pan-y
                             px-3
                             py-4
                             sm:px-5
                             sm:py-6
                         "
+                        style={{
+                            WebkitOverflowScrolling: "touch",
+                        }}
                     >
                         {/* CENTERING WRAPPER */}
                         <div
