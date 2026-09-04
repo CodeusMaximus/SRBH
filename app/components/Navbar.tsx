@@ -253,8 +253,8 @@ export default function Navbar() {
                             Blog
                         </NavLink>
 
-                        <NavLink href="/contact">
-                            Contact Us
+                        <NavLink href="/#faq">
+                            FAQs
                         </NavLink>
                     </div>
                     {/* CONTACT ICONS */}
@@ -629,12 +629,12 @@ export default function Navbar() {
                                 </MobileLink>
 
                                 <MobileLink
-                                    href="/contact"
+                                    href="/#faq"
                                     onClick={() =>
                                         setMobileOpen(false)
                                     }
                                 >
-                                    Contact Us
+                                    FAQs
                                 </MobileLink>
                             </div>
                             <Link
