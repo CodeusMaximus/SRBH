@@ -141,6 +141,7 @@ export default function CostEstimatorSection() {
 
     return (
         <section
+            id="cost-estimator"
             className="
                 relative
                 overflow-hidden

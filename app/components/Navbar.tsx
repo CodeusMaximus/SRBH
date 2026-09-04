@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
-    CalendarDays,
+    ArrowRight,
+
     ChevronDown,
     ChevronRight,
     Mail,
@@ -13,7 +14,9 @@ import {
     Phone,
     X,
 } from "lucide-react";
+
 import ServicesDropdown from "./ServicesDropdown";
+import FreeConsultationModal from "./FreeConsultationModal";
 
 const mobileServices = [
     {
@@ -37,24 +40,86 @@ const mobileServices = [
 export default function Navbar() {
     const [servicesOpen, setServicesOpen] = useState(false);
     const [mobileOpen, setMobileOpen] = useState(false);
+    const [consultationOpen, setConsultationOpen] = useState(false);
     const [mobileServicesOpen, setMobileServicesOpen] =
         useState(false);
+    const [navVisible, setNavVisible] = useState(true);
+    const lastScrollY = useRef(0);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            const currentScrollY = window.scrollY;
+
+            // Always show navbar near top of page
+            if (currentScrollY < 80) {
+                setNavVisible(true);
+                lastScrollY.current = currentScrollY;
+                return;
+            }
+
+            // Don't hide navbar while mobile menu or modal is open
+            if (mobileOpen || consultationOpen) {
+                setNavVisible(true);
+                lastScrollY.current = currentScrollY;
+                return;
+            }
+
+            // Ignore tiny movements
+            const difference =
+                currentScrollY - lastScrollY.current;
+
+            if (Math.abs(difference) < 8) {
+                return;
+            }
+
+            // Scrolling down = hide
+            if (difference > 0) {
+                setNavVisible(false);
+                setServicesOpen(false);
+            }
+
+            // Scrolling up = show
+            if (difference < 0) {
+                setNavVisible(true);
+            }
+
+            lastScrollY.current = currentScrollY;
+        };
+
+        window.addEventListener("scroll", handleScroll, {
+            passive: true,
+        });
+
+        return () => {
+            window.removeEventListener("scroll", handleScroll);
+        };
+    }, [mobileOpen, consultationOpen]);
+
 
     return (
         <>
-            <header
+            <motion.header
+                initial={false}
+                animate={{
+                    y: navVisible ? 0 : -150,
+                    opacity: navVisible ? 1 : 0,
+                }}
+                transition={{
+                    duration: 0.35,
+                    ease: [0.22, 1, 0.36, 1],
+                }}
                 className="
-                    absolute
-                    left-0
-                    top-0
-                    z-50
-                    w-full
-                    px-4
-                    pt-7
-                    sm:px-6
-                    lg:px-8
-                    lg:pt-7
-                "
+        fixed
+        left-0
+        top-0
+        z-50
+        w-full
+        px-4
+        pt-7
+        sm:px-6
+        lg:px-8
+        lg:pt-7
+    "
             >
                 <motion.nav
                     initial={{ opacity: 0, y: -20 }}
@@ -112,7 +177,7 @@ export default function Navbar() {
                     >
                         <NavLink href="/">Home</NavLink>
 
-                        <NavLink href="/about-us">
+                        <NavLink href="/Provider">
                             About Us
                         </NavLink>
 
@@ -202,9 +267,9 @@ export default function Navbar() {
     "
                     >
                         <a
-                            href="tel:+10000000000"
-                            aria-label="Call Solid Rock Behavioral Health"
-                            title="Call us"
+                            href="tel:+19294472430"
+                            aria-label="Call Solid Rock Behavioral Health at (929) 447-2430"
+                            title="Call (929) 447-2430"
                             className="
             flex
             h-11
@@ -229,7 +294,7 @@ export default function Navbar() {
                         </a>
 
                         <a
-                            href="mailto:contact@solidrockbehavioralhealth.com"
+                            href="mailto:healthcontact@srnpp.com"
                             aria-label="Email Solid Rock Behavioral Health"
                             title="Email us"
                             className="
@@ -259,9 +324,52 @@ export default function Navbar() {
                     {/* APPOINTMENT */}
 
                     {/* APPOINTMENT */}
-                    {/* FREE CONSULTATION */}
+                    {/* INSTANT QUOTE */}
                     <Link
-                        href="/contact"
+                        href="/#cost-estimator"
+                        className="
+        group
+        hidden
+        items-center
+        gap-2
+        rounded-full
+        border
+        border-[#d79a27]/35
+        bg-[#fffaf0]
+        px-5
+        py-4
+        text-[14px]
+        font-semibold
+        text-[#082957]
+        shadow-[0_8px_24px_rgba(8,41,87,0.06)]
+        transition-all
+        duration-300
+
+        hover:-translate-y-0.5
+        hover:border-[#d79a27]
+        hover:bg-[#e2b45d]
+        hover:text-[#061f43]
+        hover:shadow-[0_12px_28px_rgba(215,164,71,0.20)]
+
+        xl:flex
+    "
+                    >
+                        <span>Instant Quote</span>
+
+                        <ArrowRight
+                            className="
+            h-4
+            w-4
+            transition-transform
+            duration-300
+            group-hover:translate-x-1
+        "
+                        />
+                    </Link>
+                    {/* FREE CONSULTATION */}
+                    <button
+                        type="button"
+                        onClick={() => setConsultationOpen(true)}
                         className="
         group
         hidden
@@ -279,7 +387,6 @@ export default function Navbar() {
         duration-300
         hover:-translate-y-0.5
         hover:bg-[#063f6b]
-        hover:shadow-[0_16px_35px_rgba(7,81,135,0.35)]
         xl:flex
     "
                     >
@@ -295,7 +402,7 @@ export default function Navbar() {
             group-hover:translate-x-1
         "
                         />
-                    </Link>
+                    </button>
 
                     {/* MOBILE BUTTON */}
                     <button
@@ -319,7 +426,7 @@ export default function Navbar() {
                         <Menu className="h-6 w-6" />
                     </button>
                 </motion.nav>
-            </header>
+            </motion.header>
 
             {/* MOBILE NAVIGATION */}
             <AnimatePresence>
@@ -412,7 +519,7 @@ export default function Navbar() {
                                 </MobileLink>
 
                                 <MobileLink
-                                    href="/about-us"
+                                    href="/Provider"
                                     onClick={() =>
                                         setMobileOpen(false)
                                     }
@@ -530,14 +637,64 @@ export default function Navbar() {
                                     Contact Us
                                 </MobileLink>
                             </div>
-
-                            {/* FREE CONSULTATION */}
                             <Link
-                                href="/contact"
+                                href="/#cost-estimator"
+                                onClick={() => setMobileOpen(false)}
                                 className="
         group
-        hidden
+        mt-6
+        flex
+        min-h-[54px]
+        w-full
         items-center
+        justify-center
+        gap-2
+        rounded-full
+        border
+        border-[#d79a27]/35
+        bg-[#fff8e9]
+        px-6
+        py-4
+        text-[15px]
+        font-bold
+        text-[#082957]
+        transition-all
+        duration-300
+
+        hover:bg-[#e2b45d]
+    "
+                            >
+                                Instant Quote
+
+                                <ArrowRight
+                                    className="
+            h-4
+            w-4
+            transition-transform
+            group-hover:translate-x-1
+        "
+                                />
+                            </Link>
+
+                            {/* MOBILE FREE CONSULTATION */}
+                            <button
+                                type="button"
+                                onClick={() => {
+                                    setMobileOpen(false);
+
+                                    // Allow drawer to begin closing before modal appears
+                                    setTimeout(() => {
+                                        setConsultationOpen(true);
+                                    }, 200);
+                                }}
+                                className="
+        group
+        mt-3
+        flex
+        min-h-[54px]
+        w-full
+        items-center
+        justify-center
         gap-3
         rounded-full
         bg-[#075187]
@@ -549,10 +706,9 @@ export default function Navbar() {
         shadow-[0_12px_30px_rgba(7,81,135,0.28)]
         transition-all
         duration-300
-        hover:-translate-y-0.5
+        active:scale-[0.98]
         hover:bg-[#063f6b]
-        hover:shadow-[0_16px_35px_rgba(7,81,135,0.35)]
-        xl:flex
+        xl:hidden
     "
                             >
                                 <Phone className="h-[18px] w-[18px]" />
@@ -564,14 +720,19 @@ export default function Navbar() {
             h-4
             w-4
             transition-transform
+            duration-300
             group-hover:translate-x-1
         "
                                 />
-                            </Link>
+                            </button>
                         </motion.aside>
                     </>
                 )}
             </AnimatePresence>
+            <FreeConsultationModal
+                open={consultationOpen}
+                onClose={() => setConsultationOpen(false)}
+            />
         </>
     );
 }

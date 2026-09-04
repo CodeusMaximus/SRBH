@@ -45,7 +45,7 @@ const services = [
 
 const navigation = [
     ["Home", "/"],
-    ["About Us", "/about-us"],
+    ["Our Provider", "/Provider"],
     ["Blog", "/blog"],
     ["Contact Us", "/contact"],
 ];
@@ -413,17 +413,19 @@ export default function Footer() {
                             {/* PHONE */}
 
                             <a
-                                href="tel:+10000000000"
+                                href="tel:+19294472430"
                                 className="
-                                    group
-                                    flex
-                                    items-start
-                                    gap-3
-                                    text-[14px]
-                                    text-white/65
-                                    transition
-                                    hover:text-white
-                                "
+            mt-4
+            flex
+            w-fit
+            items-center
+            gap-2
+            text-[13px]
+            font-semibold
+            text-white/60
+            transition
+            hover:text-[#e2b45d]
+        "
                             >
                                 <span
                                     className="
@@ -449,14 +451,14 @@ export default function Footer() {
                                 </span>
 
                                 <span className="pt-1">
-                                    Phone Number
+                                    (929) 477-2430
                                 </span>
                             </a>
 
                             {/* EMAIL */}
 
                             <a
-                                href="mailto:contact@solidrockbehavioralhealth.com"
+                                href="mailto:Healthcontact@srnpp.com"
                                 className="
                                     group
                                     flex
@@ -497,8 +499,7 @@ export default function Footer() {
                                         pt-1
                                     "
                                 >
-                                    contact@
-                                    solidrockbehavioralhealth.com
+                                    HealthContact@srnpp.com
                                 </span>
                             </a>
 

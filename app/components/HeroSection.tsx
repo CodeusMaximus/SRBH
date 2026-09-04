@@ -21,7 +21,7 @@ import {
     Play,
     ShieldCheck,
 } from "lucide-react";
-
+import BookAppointmentButton from "./BookAppointmentButton";
 /* =========================================================
    HERO SLIDES
 ========================================================= */
@@ -73,6 +73,7 @@ const features = [
 ];
 
 export default function HeroSection() {
+    const [bookingOpen, setBookingOpen] = useState(false);
     const [currentSlide, setCurrentSlide] =
         useState(0);
 
@@ -650,47 +651,7 @@ export default function HeroSection() {
                                     sm:gap-4
                                 "
                             >
-                                <Link
-                                    href="/contact"
-                                    className="
-                                        group
-                                        flex
-                                        min-h-[56px]
-                                        items-center
-                                        justify-center
-                                        gap-3
-                                        rounded-full
-                                        bg-[#075187]
-                                        px-7
-                                        py-4
-                                        text-[15px]
-                                        font-semibold
-                                        text-white
-                                        shadow-[0_14px_35px_rgba(7,81,135,0.28)]
-                                        transition-all
-                                        duration-300
-
-                                        hover:-translate-y-1
-                                        hover:bg-[#063f6b]
-                                        hover:shadow-[0_18px_40px_rgba(7,81,135,0.36)]
-
-                                        sm:px-8
-                                        sm:text-[16px]
-                                    "
-                                >
-                                    <CalendarDays className="h-5 w-5" />
-
-                                    Book an Appointment
-
-                                    <ChevronRight
-                                        className="
-                                            h-5
-                                            w-5
-                                            transition-transform
-                                            group-hover:translate-x-1
-                                        "
-                                    />
-                                </Link>
+                                <BookAppointmentButton />
 
                                 <Link
                                     href="/about-us"
@@ -1137,7 +1098,7 @@ export default function HeroSection() {
                                 "
                             >
                                 <Link
-                                    href="/about-us"
+                                    href="/Provider"
                                     className="
                                         group
                                         inline-flex
@@ -1371,6 +1332,9 @@ export default function HeroSection() {
                     bg-[#286a98]/45
                 "
             />
+
+            {/* BOOK APPOINTMENT MODAL */}
+
         </section>
     );
 }
