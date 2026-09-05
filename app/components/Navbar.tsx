@@ -249,7 +249,7 @@ export default function Navbar() {
                             </AnimatePresence>
                         </div>
 
-                        <NavLink href="/blog">
+                        <NavLink href="/Blog">
                             Blog
                         </NavLink>
 
@@ -620,7 +620,7 @@ export default function Navbar() {
                                 </AnimatePresence>
 
                                 <MobileLink
-                                    href="/blog"
+                                    href="/Blog"
                                     onClick={() =>
                                         setMobileOpen(false)
                                     }

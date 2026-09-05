@@ -245,7 +245,7 @@ export default function AboutSection() {
                     {/* CTA */}
 
                     <Link
-                        href="/about-us"
+                        href="/Provider"
                         className="
                             group
                             mt-9

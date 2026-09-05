@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { useState } from "react";
 import { motion } from "framer-motion";
 import {
@@ -15,9 +14,12 @@ import {
     RefreshCcw,
     ShieldCheck,
     Sparkles,
+    Check,
+    X
 } from "lucide-react";
 
 import FreeConsultationModal from "./FreeConsultationModal";
+import BookAppointmentButton from "./BookAppointmentButton";
 
 const services = [
     {
@@ -26,6 +28,14 @@ const services = [
         description:
             "Personalized strategies for focus and productivity.",
         href: "/services/adhd",
+        overview: "ADHD is a neurodevelopmental condition that can affect attention, organization, impulse control, working memory, and the ability to regulate activity level. Symptoms can look different from person to person and may affect school, work, relationships, and everyday routines.",
+        treatment: "Care begins with a thoughtful psychiatric evaluation that considers symptoms, history, daily functioning, and other factors that may contribute to attention difficulties. When appropriate, treatment may include education, practical behavioral strategies, coordination with therapy, and medication management.",
+        supports: [
+            "Attention and concentration difficulties",
+            "Organization and time-management challenges",
+            "Impulsivity or restlessness",
+            "Medication evaluation and ongoing monitoring",
+        ],
         icon: Focus,
     },
     {
@@ -34,6 +44,14 @@ const services = [
         description:
             "Relief from the weight of anxiety and depression.",
         href: "/services/anxiety-depression",
+        overview: "Anxiety and depression can affect mood, energy, sleep, concentration, motivation, relationships, and a person’s ability to manage everyday responsibilities. These conditions may occur separately or together, and the experience can vary greatly from one person to another.",
+        treatment: "Treatment is individualized after an evaluation of symptoms, history, stressors, functioning, and personal goals. Depending on clinical needs, care may include supportive education, coping strategies, coordination with psychotherapy, and medication management when appropriate.",
+        supports: [
+            "Persistent worry, fear, or tension",
+            "Low mood or loss of interest",
+            "Sleep, energy, or concentration changes",
+            "Medication evaluation and follow-up care",
+        ],
         icon: CloudRain,
     },
     {
@@ -42,6 +60,14 @@ const services = [
         description:
             "A comprehensive approach to navigating bipolar disorder.",
         href: "/services/bipolar-disorder",
+        overview: "Bipolar disorder is a mood disorder associated with significant shifts in mood, energy, activity, sleep, and functioning. Episodes may include periods of depression as well as periods of unusually elevated, energized, or irritable mood.",
+        treatment: "Care focuses on careful assessment, mood stability, symptom monitoring, and an individualized treatment plan. Depending on the person’s needs, treatment may include education, medication management, coordination with psychotherapy, and ongoing monitoring for changes in mood, sleep, and functioning.",
+        supports: [
+            "Changes in mood and energy",
+            "Sleep and activity changes",
+            "Depressive or elevated mood episodes",
+            "Ongoing medication and symptom monitoring",
+        ],
         icon: RefreshCcw,
     },
     {
@@ -50,6 +76,14 @@ const services = [
         description:
             "Techniques for managing and channeling anger effectively.",
         href: "/services/anger-management",
+        overview: "Frequent or intense anger can affect relationships, work, family life, and overall well-being. Anger may be connected with stress, mood symptoms, trauma, impulsivity, communication patterns, or other underlying concerns.",
+        treatment: "We look beyond the anger itself to understand possible triggers and contributing mental-health factors. Care may include identifying patterns, strengthening emotional-regulation and coping skills, coordinating with therapy, and addressing related psychiatric symptoms when clinically appropriate.",
+        supports: [
+            "Identifying triggers and patterns",
+            "Emotional regulation strategies",
+            "Stress and impulse-management support",
+            "Evaluation of related mood or psychiatric concerns",
+        ],
         icon: Flame,
     },
     {
@@ -58,6 +92,14 @@ const services = [
         description:
             "Support and healing for past traumas.",
         href: "/services/ptsd",
+        overview: "Post-traumatic stress disorder can develop after experiencing or witnessing a traumatic event. Symptoms may include intrusive memories, nightmares, avoidance, heightened alertness, changes in mood, sleep difficulties, or feeling disconnected from others.",
+        treatment: "Treatment begins with a trauma-informed evaluation in a respectful, supportive setting. Depending on individual needs, care may include education about trauma responses, coordination with evidence-based psychotherapy, symptom-focused strategies, and medication management when appropriate.",
+        supports: [
+            "Trauma-related anxiety and distress",
+            "Nightmares or sleep disruption",
+            "Hypervigilance and avoidance",
+            "Medication evaluation and coordinated care",
+        ],
         icon: ShieldCheck,
     },
     {
@@ -66,6 +108,14 @@ const services = [
         description:
             "Restorative solutions for sleep disturbances.",
         href: "/services/insomnia",
+        overview: "Insomnia involves ongoing difficulty falling asleep, staying asleep, or obtaining restorative sleep. Poor sleep can affect concentration, mood, energy, physical well-being, and daily functioning, and it may occur alongside other mental-health concerns.",
+        treatment: "We assess sleep patterns as well as medical, behavioral, medication-related, and psychiatric factors that may be contributing. Treatment may include sleep education, behavioral recommendations, coordination with other providers, and medication management when clinically appropriate.",
+        supports: [
+            "Difficulty falling or staying asleep",
+            "Non-restorative sleep",
+            "Sleep-related mood or concentration problems",
+            "Review of contributing medications and psychiatric symptoms",
+        ],
         icon: Moon,
     },
     {
@@ -74,6 +124,14 @@ const services = [
         description:
             "Compassionate care for managing psychosis symptoms.",
         href: "/services/psychosis",
+        overview: "Psychosis can involve changes in how a person perceives, interprets, or experiences reality. Symptoms may include hallucinations, unusual or fixed beliefs, disorganized thinking, or significant changes in behavior and functioning.",
+        treatment: "Care requires careful psychiatric assessment and close follow-up. Treatment is individualized and may include medication management, education and support for the patient and family, coordination with therapists or other clinicians, and monitoring of symptoms and functioning.",
+        supports: [
+            "Changes in perception or thinking",
+            "Hallucinations or unusual beliefs",
+            "Changes in behavior or functioning",
+            "Medication management and ongoing monitoring",
+        ],
         icon: Sparkles,
     },
     {
@@ -82,6 +140,14 @@ const services = [
         description:
             "Coping strategies for obsessive-compulsive disorder.",
         href: "/services/ocd",
+        overview: "Obsessive-compulsive disorder involves recurring unwanted thoughts, urges, or images and repetitive behaviors or mental rituals that a person feels driven to perform. Symptoms can be time-consuming and interfere with work, relationships, routines, and quality of life.",
+        treatment: "Treatment starts with an assessment of obsessive thoughts, compulsive behaviors, related anxiety, and daily functioning. Depending on clinical needs, care may include education, medication management, and coordination with evidence-based psychotherapy such as exposure and response prevention.",
+        supports: [
+            "Intrusive or unwanted thoughts",
+            "Repetitive behaviors or mental rituals",
+            "Anxiety related to obsessions and compulsions",
+            "Medication management and therapy coordination",
+        ],
         icon: Brain,
     },
 ];
@@ -89,6 +155,9 @@ const services = [
 export default function ServicesSection() {
     const [consultationOpen, setConsultationOpen] =
         useState(false);
+    const [selectedService, setSelectedService] = useState<
+        (typeof services)[number] | null
+    >(null);
 
     return (
         <>
@@ -317,9 +386,10 @@ export default function ServicesSection() {
                                         }}
                                         className="h-full"
                                     >
-                                        <Link
-                                            href={
-                                                service.href
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                setSelectedService(service)
                                             }
                                             className="
                                                 group
@@ -345,6 +415,7 @@ export default function ServicesSection() {
                                                 sm:min-h-[310px]
                                                 sm:p-7
                                                 lg:p-8
+                                                text-left
                                             "
                                         >
                                             <CardLines
@@ -567,7 +638,7 @@ export default function ServicesSection() {
                                                     />
                                                 </span>
                                             </div>
-                                        </Link>
+                                        </button>
                                     </motion.div>
                                 );
                             }
@@ -701,6 +772,11 @@ export default function ServicesSection() {
                 </div>
             </section>
 
+            <ServiceDetailModal
+                service={selectedService}
+                onClose={() => setSelectedService(null)}
+            />
+
             {/* =========================================
                 FREE CONSULTATION MODAL
             ========================================= */}
@@ -712,6 +788,149 @@ export default function ServicesSection() {
                 }
             />
         </>
+    );
+}
+
+
+type ServiceDetailModalProps = {
+    service: (typeof services)[number] | null;
+    onClose: () => void;
+};
+
+function ServiceDetailModal({
+    service,
+    onClose,
+}: ServiceDetailModalProps) {
+    if (!service) return null;
+
+    const Icon = service.icon;
+
+    return (
+        <div
+            className="fixed inset-0 z-[260] overflow-y-auto overscroll-y-contain bg-[#061f43]/70 px-3 py-4 backdrop-blur-sm sm:px-5 sm:py-7"
+            style={{ WebkitOverflowScrolling: "touch" }}
+            onClick={onClose}
+            role="presentation"
+        >
+            <div className="flex min-h-full items-start justify-center sm:items-center">
+                <motion.div
+                    initial={{ opacity: 0, y: 24, scale: 0.98 }}
+                    animate={{ opacity: 1, y: 0, scale: 1 }}
+                    transition={{ duration: 0.28, ease: "easeOut" }}
+                    onClick={(event) => event.stopPropagation()}
+                    role="dialog"
+                    aria-modal="true"
+                    aria-labelledby="service-modal-title"
+                    className="relative w-full max-w-[940px] overflow-hidden rounded-[30px] border border-white/60 bg-[#fffdf9] shadow-[0_35px_100px_rgba(6,31,67,0.30)]"
+                >
+                    <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
+                        <div className="absolute -right-24 -top-24 h-[300px] w-[300px] rounded-full border-[2px] border-[#E9A6B2]/35 bg-[#E9A6B2]/[0.07]" />
+                        <div className="absolute -right-4 -top-4 h-[170px] w-[170px] rounded-full border-[2px] border-[#E7BC61]/45 bg-[#E7BC61]/[0.06]" />
+                        <div className="absolute -bottom-28 -left-24 h-[300px] w-[300px] rounded-full bg-[#075187]/[0.05] blur-3xl" />
+                    </div>
+
+                    <button
+                        type="button"
+                        onClick={onClose}
+                        aria-label="Close service details"
+                        className="absolute right-4 top-4 z-30 flex h-11 w-11 items-center justify-center rounded-full border border-[#082957]/10 bg-white/90 text-[#082957] shadow-sm transition hover:bg-[#082957] hover:text-white sm:right-6 sm:top-6"
+                    >
+                        <X className="h-5 w-5" />
+                    </button>
+
+                    <div className="relative z-10 grid lg:grid-cols-[0.78fr_1.22fr]">
+                        <div className="bg-gradient-to-br from-[#082957] via-[#075187] to-[#0a638e] p-7 text-white sm:p-9 lg:p-10">
+                            <div className="flex h-16 w-16 items-center justify-center rounded-[20px] border border-white/15 bg-white/10 shadow-[0_12px_30px_rgba(0,0,0,0.12)]">
+                                <Icon className="h-8 w-8 text-[#f2c66d]" strokeWidth={1.7} />
+                            </div>
+
+                            <p className="mt-8 text-[11px] font-bold uppercase tracking-[0.26em] text-[#f2c66d]">
+                                Treatment Focus
+                            </p>
+
+                            <h3
+                                id="service-modal-title"
+                                className="mt-3 font-serif text-[34px] font-semibold leading-[1.04] tracking-[-0.03em] sm:text-[42px]"
+                            >
+                                {service.title}
+                            </h3>
+
+                            <p className="mt-5 text-[15px] leading-7 text-white/75">
+                                Personalized psychiatric care centered on understanding your symptoms, needs, and treatment goals.
+                            </p>
+
+                            <div className="mt-8 h-px w-full bg-white/15" />
+
+                            <p className="mt-7 text-[12px] font-bold uppercase tracking-[0.2em] text-white/55">
+                                Areas we can address
+                            </p>
+
+                            <div className="mt-4 space-y-3">
+                                {service.supports.map((item) => (
+                                    <div key={item} className="flex items-start gap-3">
+                                        <span className="mt-1 flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-[#f2c66d]/15 text-[#f2c66d]">
+                                            <Check className="h-3 w-3" strokeWidth={2.5} />
+                                        </span>
+                                        <span className="text-[14px] leading-6 text-white/80">
+                                            {item}
+                                        </span>
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+
+                        <div className="relative p-7 sm:p-9 lg:p-11">
+                            <div className="max-w-[610px]">
+                                <p className="text-[11px] font-bold uppercase tracking-[0.24em] text-[#b67a1b]">
+                                    Understanding {service.title}
+                                </p>
+
+                                <h4 className="mt-3 font-serif text-[28px] font-semibold tracking-[-0.025em] text-[#082957] sm:text-[32px]">
+                                    What is it?
+                                </h4>
+
+                                <p className="mt-4 text-[15px] leading-[1.85] text-[#536a82]">
+                                    {service.overview}
+                                </p>
+
+                                <div className="my-7 h-px bg-gradient-to-r from-[#E9A6B2]/60 via-[#E7BC61]/55 to-transparent" />
+
+                                <h4 className="font-serif text-[28px] font-semibold tracking-[-0.025em] text-[#082957] sm:text-[32px]">
+                                    How we approach treatment
+                                </h4>
+
+                                <p className="mt-4 text-[15px] leading-[1.85] text-[#536a82]">
+                                    {service.treatment}
+                                </p>
+
+                                <div className="mt-8 rounded-[22px] border border-[#082957]/10 bg-gradient-to-br from-[#f4f8fa] via-white to-[#fff7e7] p-5 sm:p-6">
+                                    <p className="font-serif text-[20px] font-semibold text-[#082957]">
+                                        Ready to talk with a provider?
+                                    </p>
+                                    <p className="mt-2 text-[13px] leading-6 text-[#60758a]">
+                                        Schedule an appointment to discuss your concerns and determine an appropriate next step based on your individual needs.
+                                    </p>
+
+                                    <div
+                                        className="mt-5"
+                                        onClick={onClose}
+                                    >
+                                        <BookAppointmentButton
+                                            label="Book an Appointment"
+                                            className="w-full sm:w-auto"
+                                        />
+                                    </div>
+                                </div>
+
+                                <p className="mt-5 text-[11px] leading-5 text-[#7b8d9e]">
+                                    Information on this page is educational and is not a diagnosis or a substitute for an individualized clinical evaluation. If you are experiencing an emergency or are in immediate danger, call 911 or go to the nearest emergency department.
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
+        </div>
     );
 }
 

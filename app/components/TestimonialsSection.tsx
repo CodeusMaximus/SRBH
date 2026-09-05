@@ -23,21 +23,45 @@ import {
 const testimonials = [
     {
         quote:
-            "Sample testimonial — replace this text with an approved patient testimonial before publishing the website.",
-        name: "Patient Testimonial",
-        detail: "Verified feedback",
+            "I finally felt like I was speaking with someone who truly listened. I never felt rushed, and everything was explained in a way that made me feel comfortable and involved in my care.",
+        name: "Monica R.",
+        detail: "Patient",
     },
     {
         quote:
-            "Sample testimonial — this space can highlight a patient's experience with compassionate, attentive, and personalized care.",
-        name: "Patient Testimonial",
-        detail: "Verified feedback",
+            "From my first appointment, I felt respected and understood. The approach was thoughtful, professional, and personal. It made a huge difference to feel like my concerns were actually being heard.",
+        name: "Daniel C.",
+        detail: "Patient",
     },
     {
         quote:
-            "Sample testimonial — approved feedback can be added here once testimonials are available for publication.",
-        name: "Patient Testimonial",
-        detail: "Verified feedback",
+            "What stood out to me most was the compassion. I was nervous about reaching out for help, but I was treated with patience and without judgment. I left feeling hopeful about moving forward.",
+        name: "Ashley M.",
+        detail: "Patient",
+    },
+    {
+        quote:
+            "I appreciated how clearly everything was explained to me. I was able to ask questions, talk openly about my concerns, and understand the options available to me instead of feeling overwhelmed.",
+        name: "Kevin T.",
+        detail: "Patient",
+    },
+    {
+        quote:
+            "The care felt genuinely personalized. I never felt like just another appointment on the schedule. There was real attention to what I was experiencing and what I wanted to accomplish.",
+        name: "Samantha L.",
+        detail: "Patient",
+    },
+    {
+        quote:
+            "Finding the right support had been difficult for me. Here, I felt comfortable talking honestly about what I was going through and felt supported in taking things one step at a time.",
+        name: "Marcus J.",
+        detail: "Patient",
+    },
+    {
+        quote:
+            "The entire experience was warm, professional, and reassuring. I felt heard, respected, and included in the conversation about my care. That level of communication meant a lot to me.",
+        name: "Nicole B.",
+        detail: "Patient",
     },
 ];
 
