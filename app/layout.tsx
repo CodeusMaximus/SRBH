@@ -1,6 +1,9 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
+import { ClerkProvider } from "@clerk/nextjs";
+
 import "./globals.css";
+
 import Navbar from "./components/Navbar";
 import Footer from "./components/footer";
 import BookingProvider from "./components/BookingProvider";
@@ -21,22 +24,27 @@ export const metadata: Metadata = {
     "Compassionate, personalized psychiatric care.",
 };
 
-export default function RootLayout({ children }: LayoutProps<"/">) {
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
   return (
-    <html
-      lang="en"
-      className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
-    >
+    <ClerkProvider>
+      <html
+        lang="en"
+        className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      >
+        <body>
+          <BookingProvider>
+            <Navbar />
 
-      <body>
-        <BookingProvider>
-          <Navbar />
+            {children}
 
-          {children}
-
-          <Footer />
-        </BookingProvider>
-      </body>
-    </html >
+            <Footer />
+          </BookingProvider>
+        </body>
+      </html>
+    </ClerkProvider>
   );
 }

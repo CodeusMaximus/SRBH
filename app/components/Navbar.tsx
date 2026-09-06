@@ -5,10 +5,16 @@ import Image from "next/image";
 import Link from "next/link";
 import { AnimatePresence, motion } from "framer-motion";
 import {
+    Show,
+    SignInButton,
+    UserButton,
+} from "@clerk/nextjs";
+import {
     ArrowRight,
-
     ChevronDown,
     ChevronRight,
+    LayoutDashboard,
+    LogIn,
     Mail,
     Menu,
     Phone,
@@ -323,7 +329,85 @@ export default function Navbar() {
 
                     {/* APPOINTMENT */}
 
-                    {/* APPOINTMENT */}
+
+
+                    {/* ADMIN LOGIN */}
+
+                    {/* ADMIN LOGIN */}
+
+                    <Show when="signed-out">
+                        <SignInButton
+                            mode="modal"
+                            fallbackRedirectUrl="/Dashboard"
+                        >
+                            <button
+                                type="button"
+                                className="
+                group
+                hidden
+                h-11
+                items-center
+                justify-center
+                gap-2
+                rounded-full
+                border
+                border-[#082957]/10
+                bg-[#eef4f7]/90
+                px-4
+                text-[14px]
+                font-semibold
+                text-[#082957]
+                transition-all
+                duration-300
+
+                hover:-translate-y-0.5
+                hover:border-[#075187]
+                hover:bg-[#075187]
+                hover:text-white
+
+                xl:flex
+            "
+                            >
+                                <LogIn className="h-[17px] w-[17px]" />
+
+                                <span>Login</span>
+                            </button>
+                        </SignInButton>
+                    </Show>
+
+                    <Show when="signed-in">
+                        <div className="hidden items-center gap-3 xl:flex">
+
+                            <Link
+                                href="/Dashboard"
+                                className="
+                flex
+                h-11
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-[#d79a27]/30
+                bg-[#fff8e9]
+                px-4
+                text-[14px]
+                font-semibold
+                text-[#082957]
+                transition-all
+                duration-300
+                hover:-translate-y-0.5
+                hover:border-[#d79a27]
+                hover:bg-[#e2b45d]
+            "
+                            >
+                                <LayoutDashboard className="h-[17px] w-[17px]" />
+
+                                Dashboard
+                            </Link>
+
+                            <UserButton />
+                        </div>
+                    </Show>
                     {/* INSTANT QUOTE */}
                     <Link
                         href="/#cost-estimator"
@@ -725,6 +809,36 @@ export default function Navbar() {
         "
                                 />
                             </button>
+                            <Show when="signed-out">
+                                <SignInButton
+                                    mode="modal"
+                                    fallbackRedirectUrl="/admin"
+                                >
+                                    <button
+                                        type="button"
+                                        onClick={() => setMobileOpen(false)}
+                                        className="
+                flex
+                w-full
+                items-center
+                justify-between
+                border-b
+                border-slate-100
+                py-4
+                text-[17px]
+                font-semibold
+                text-[#082957]
+            "
+                                    >
+                                        <span className="flex items-center gap-3">
+                                            <LogIn className="h-5 w-5 text-[#075187]" />
+                                            Admin Login
+                                        </span>
+
+                                        <ChevronRight className="h-4 w-4" />
+                                    </button>
+                                </SignInButton>
+                            </Show>
                         </motion.aside>
                     </>
                 )}
