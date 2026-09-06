@@ -20,11 +20,11 @@ if (skipMongoDB) {
 } else {
   // Real MongoDB connection for runtime
   const uri = process.env.DATABASE_URI;
-  
+
   if (!uri) {
     throw new Error('Please define the DATABASE_URI environment variable');
   }
-  
+
   const options: MongoClientOptions = {};
 
   if (process.env.NODE_ENV === 'development') {
@@ -51,9 +51,9 @@ export async function connectToDatabase() {
   if (!process.env.DATABASE_URI && !skipMongoDB) {
     throw new Error('MongoDB connection error: DATABASE_URI environment variable is missing. Please add it to your .env file or deployment environment.');
   }
-  
+
   const client = await clientPromise;
-  const db = client.db("MediDari");
+  const db = client.db("NpWebsite");
   return { client, db };
 }
 

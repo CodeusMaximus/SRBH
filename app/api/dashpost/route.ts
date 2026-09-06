@@ -14,6 +14,7 @@ import {
 
 import {
   ObjectId,
+  Db,
 } from "mongodb";
 
 import slugify from "slugify";
@@ -46,7 +47,10 @@ function cleanFilename(
       /[^a-zA-Z0-9._-]/g,
       "-"
     )
-    .replace(/-+/g, "-");
+    .replace(
+      /-+/g,
+      "-"
+    );
 }
 
 function isValidStatus(
@@ -76,22 +80,58 @@ function serializePost(
 }
 
 /* ============================================================
+   GET FILES FROM FORM DATA
+
+   Supports both:
+   images
+   image
+============================================================ */
+
+function getImageFiles(
+  formData: FormData
+): File[] {
+  const entries = [
+    ...formData.getAll(
+      "images"
+    ),
+
+    ...formData.getAll(
+      "image"
+    ),
+  ];
+
+  return entries.filter(
+    (
+      item
+    ): item is File =>
+      item instanceof File &&
+      item.size > 0
+  );
+}
+
+/* ============================================================
    UNIQUE SLUG
 ============================================================ */
 
 async function createUniqueSlug(
-  db: any,
+  db: Db,
   title: string,
   excludeId?: ObjectId
 ) {
   const baseSlug =
-    slugify(title, {
-      lower: true,
-      strict: true,
-      trim: true,
-    }) || `post-${Date.now()}`;
+    slugify(
+      title,
+      {
+        lower: true,
+        strict: true,
+        trim: true,
+      }
+    ) ||
+    `post-${Date.now()}`;
 
-  let uniqueSlug = baseSlug;
+  let uniqueSlug =
+    baseSlug;
+
   let counter = 1;
 
   while (true) {
@@ -99,19 +139,25 @@ async function createUniqueSlug(
       string,
       any
     > = {
-      slug: uniqueSlug,
+      slug:
+        uniqueSlug,
     };
 
     if (excludeId) {
       query._id = {
-        $ne: excludeId,
+        $ne:
+          excludeId,
       };
     }
 
     const existing =
       await db
-        .collection("posts")
-        .findOne(query);
+        .collection(
+          "posts"
+        )
+        .findOne(
+          query
+        );
 
     if (!existing) {
       return uniqueSlug;
@@ -125,16 +171,19 @@ async function createUniqueSlug(
 }
 
 /* ============================================================
-   BLOB UPLOAD
+   VERCEL BLOB UPLOAD
 ============================================================ */
 
 async function uploadImages(
   files: File[],
   userId: string
 ): Promise<string[]> {
-  const urls: string[] = [];
+  const urls: string[] =
+    [];
 
-  for (const file of files) {
+  for (
+    const file of files
+  ) {
     if (
       !file ||
       file.size === 0
@@ -142,9 +191,10 @@ async function uploadImages(
       continue;
     }
 
-    /*
-     * Only allow images.
-     */
+    /* ----------------------------
+       Validate file type
+    ----------------------------- */
+
     if (
       !file.type.startsWith(
         "image/"
@@ -155,12 +205,14 @@ async function uploadImages(
       );
     }
 
-    /*
-     * 10 MB limit per image.
-     * Change this if you want.
-     */
+    /* ----------------------------
+       10 MB maximum
+    ----------------------------- */
+
     const MAX_FILE_SIZE =
-      10 * 1024 * 1024;
+      10 *
+      1024 *
+      1024;
 
     if (
       file.size >
@@ -180,12 +232,30 @@ async function uploadImages(
     const pathname =
       `blog-images/${userId}/${Date.now()}-${crypto.randomUUID()}-${filename}`;
 
+    console.log(
+      "UPLOADING TO VERCEL BLOB:",
+      {
+        pathname,
+        filename,
+        type:
+          file.type,
+        size:
+          file.size,
+      }
+    );
+
+    /* ----------------------------
+       Upload
+    ----------------------------- */
+
     const blob =
       await put(
         pathname,
         file,
         {
-          access: "public",
+          access:
+            "public",
+
           contentType:
             file.type ||
             undefined,
@@ -195,10 +265,53 @@ async function uploadImages(
         }
       );
 
-    urls.push(blob.url);
+    console.log(
+      "VERCEL BLOB UPLOAD SUCCESS:",
+      blob.url
+    );
+
+    urls.push(
+      blob.url
+    );
   }
 
   return urls;
+}
+
+/* ============================================================
+   DELETE BLOB IMAGES
+============================================================ */
+
+async function deleteBlobImages(
+  urls: string[]
+) {
+  const blobUrls =
+    urls.filter(
+      (url) =>
+        typeof url ===
+        "string" &&
+        url.includes(
+          ".blob.vercel-storage.com"
+        )
+    );
+
+  if (
+    blobUrls.length ===
+    0
+  ) {
+    return;
+  }
+
+  try {
+    await del(
+      blobUrls
+    );
+  } catch (error) {
+    console.error(
+      "VERCEL BLOB DELETE ERROR:",
+      error
+    );
+  }
 }
 
 /* ============================================================
@@ -215,11 +328,15 @@ export async function POST(
   if (!userId) {
     return NextResponse.json(
       {
-        success: false,
-        error: "Unauthorized",
+        success:
+          false,
+
+        error:
+          "Unauthorized",
       },
       {
-        status: 401,
+        status:
+          401,
       }
     );
   }
@@ -227,6 +344,10 @@ export async function POST(
   try {
     const formData =
       await req.formData();
+
+    /* ----------------------------
+       Text fields
+    ----------------------------- */
 
     const title =
       String(
@@ -246,7 +367,8 @@ export async function POST(
       String(
         formData.get(
           "status"
-        ) || "draft"
+        ) ||
+        "draft"
       );
 
     const status: PostStatus =
@@ -258,36 +380,62 @@ export async function POST(
 
     const tags =
       formData
-        .getAll("tags")
-        .map((tag) =>
-          String(
-            tag
-          ).trim()
+        .getAll(
+          "tags"
         )
-        .filter(Boolean);
+        .map(
+          (
+            tag
+          ) =>
+            String(
+              tag
+            ).trim()
+        )
+        .filter(
+          Boolean
+        );
+
+    /* ----------------------------
+       Images
+    ----------------------------- */
 
     const imageFiles =
-      formData
-        .getAll("images")
-        .filter(
-          (
-            item
-          ): item is File =>
-            item instanceof
-            File &&
-            item.size >
-            0
-        );
+      getImageFiles(
+        formData
+      );
+
+    console.log(
+      "CREATE POST IMAGE FILES:",
+      imageFiles.map(
+        (file) => ({
+          name:
+            file.name,
+
+          type:
+            file.type,
+
+          size:
+            file.size,
+        })
+      )
+    );
+
+    /* ----------------------------
+       Validation
+    ----------------------------- */
 
     if (!title) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Post title is required.",
         },
         {
-          status: 400,
+          status:
+            400,
         }
       );
     }
@@ -295,15 +443,22 @@ export async function POST(
     if (!content) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Post content is required.",
         },
         {
-          status: 400,
+          status:
+            400,
         }
       );
     }
+
+    /* ----------------------------
+       Database
+    ----------------------------- */
 
     const { db } =
       await connectToDatabase();
@@ -313,31 +468,45 @@ export async function POST(
         "posts"
       );
 
+    /* ----------------------------
+       Slug
+    ----------------------------- */
+
     const slug =
       await createUniqueSlug(
         db,
         title
       );
 
-    /*
-     * Upload images to
-     * Vercel Blob.
-     */
+    /* ----------------------------
+       Upload images
+    ----------------------------- */
+
     const imageUrls =
       await uploadImages(
         imageFiles,
         userId
       );
 
+    console.log(
+      "VERCEL BLOB URLS:",
+      imageUrls
+    );
+
     const now =
       new Date();
+
+    /* ----------------------------
+       Mongo document
+    ----------------------------- */
 
     const newPost = {
       title,
       content,
       slug,
 
-      author: userId,
+      author:
+        userId,
 
       status,
 
@@ -346,12 +515,6 @@ export async function POST(
       images:
         imageUrls,
 
-      /*
-       * Also store the first
-       * image separately.
-       * This keeps compatibility
-       * with your existing blog UI.
-       */
       image:
         imageUrls[0] ||
         "",
@@ -366,18 +529,27 @@ export async function POST(
           ? now
           : null,
 
-      views: 0,
+      views:
+        0,
 
-      createdAt: now,
-      updatedAt: now,
+      createdAt:
+        now,
+
+      updatedAt:
+        now,
     };
+
+    /* ----------------------------
+       Save
+    ----------------------------- */
 
     const result =
       await posts.insertOne(
         newPost
       );
 
-    const createdPost = {
+    const createdPost =
+    {
       ...newPost,
 
       _id:
@@ -387,13 +559,31 @@ export async function POST(
         result.insertedId.toString(),
     };
 
+    console.log(
+      "POST CREATED:",
+      {
+        id:
+          createdPost.id,
+
+        image:
+          createdPost.image,
+
+        images:
+          createdPost.images,
+      }
+    );
+
     return NextResponse.json(
       {
-        success: true,
-        post: createdPost,
+        success:
+          true,
+
+        post:
+          createdPost,
       },
       {
-        status: 201,
+        status:
+          201,
       }
     );
   } catch (error) {
@@ -404,17 +594,21 @@ export async function POST(
 
     return NextResponse.json(
       {
-        success: false,
+        success:
+          false,
+
         error:
           "Failed to create post",
 
         details:
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : "Unknown error",
       },
       {
-        status: 500,
+        status:
+          500,
       }
     );
   }
@@ -434,11 +628,15 @@ export async function GET(
   if (!userId) {
     return NextResponse.json(
       {
-        success: false,
-        error: "Unauthorized",
+        success:
+          false,
+
+        error:
+          "Unauthorized",
       },
       {
-        status: 401,
+        status:
+          401,
       }
     );
   }
@@ -449,7 +647,10 @@ export async function GET(
 
     const {
       searchParams,
-    } = new URL(req.url);
+    } =
+      new URL(
+        req.url
+      );
 
     const isPublished =
       searchParams.get(
@@ -460,10 +661,13 @@ export async function GET(
       string,
       any
     > = {
-      author: userId,
+      author:
+        userId,
     };
 
-    if (isPublished) {
+    if (
+      isPublished
+    ) {
       query.status =
         "published";
     }
@@ -473,20 +677,26 @@ export async function GET(
         .collection(
           "posts"
         )
-        .find(query)
+        .find(
+          query
+        )
         .sort({
-          createdAt: -1,
+          createdAt:
+            -1,
         })
         .toArray();
 
-    return NextResponse.json({
-      success: true,
+    return NextResponse.json(
+      {
+        success:
+          true,
 
-      posts:
-        posts.map(
-          serializePost
-        ),
-    });
+        posts:
+          posts.map(
+            serializePost
+          ),
+      }
+    );
   } catch (error) {
     console.error(
       "GET /api/dashpost:",
@@ -495,17 +705,21 @@ export async function GET(
 
     return NextResponse.json(
       {
-        success: false,
+        success:
+          false,
+
         error:
           "Failed to fetch posts",
 
         details:
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : "Unknown error",
       },
       {
-        status: 500,
+        status:
+          500,
       }
     );
   }
@@ -525,11 +739,15 @@ export async function PUT(
   if (!userId) {
     return NextResponse.json(
       {
-        success: false,
-        error: "Unauthorized",
+        success:
+          false,
+
+        error:
+          "Unauthorized",
       },
       {
-        status: 401,
+        status:
+          401,
       }
     );
   }
@@ -545,7 +763,10 @@ export async function PUT(
 
     const {
       searchParams,
-    } = new URL(req.url);
+    } =
+      new URL(
+        req.url
+      );
 
     const postId =
       searchParams.get(
@@ -565,12 +786,15 @@ export async function PUT(
     ) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Valid post ID is required",
         },
         {
-          status: 400,
+          status:
+            400,
         }
       );
     }
@@ -580,27 +804,30 @@ export async function PUT(
         postId
       );
 
-    /*
-     * Author check prevents one
-     * authenticated account from
-     * modifying another author's
-     * post.
-     */
     const existingPost =
-      await posts.findOne({
-        _id,
-        author: userId,
-      });
+      await posts.findOne(
+        {
+          _id,
 
-    if (!existingPost) {
+          author:
+            userId,
+        }
+      );
+
+    if (
+      !existingPost
+    ) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Post not found or you do not have permission to modify it",
         },
         {
-          status: 404,
+          status:
+            404,
         }
       );
     }
@@ -608,9 +835,9 @@ export async function PUT(
     const now =
       new Date();
 
-    /* ---------------------------
+    /* =====================================================
        PUBLISH
-    --------------------------- */
+    ====================================================== */
 
     if (
       action ===
@@ -619,6 +846,7 @@ export async function PUT(
       await posts.updateOne(
         {
           _id,
+
           author:
             userId,
         },
@@ -626,10 +854,13 @@ export async function PUT(
           $set: {
             status:
               "published",
+
             published:
               true,
+
             publishedAt:
               now,
+
             updatedAt:
               now,
           },
@@ -637,9 +868,9 @@ export async function PUT(
       );
     }
 
-    /* ---------------------------
+    /* =====================================================
        UNPUBLISH
-    --------------------------- */
+    ====================================================== */
 
     else if (
       action ===
@@ -648,6 +879,7 @@ export async function PUT(
       await posts.updateOne(
         {
           _id,
+
           author:
             userId,
         },
@@ -655,10 +887,13 @@ export async function PUT(
           $set: {
             status:
               "draft",
+
             published:
               false,
+
             publishedAt:
               null,
+
             updatedAt:
               now,
           },
@@ -666,12 +901,13 @@ export async function PUT(
       );
     }
 
-    /* ---------------------------
+    /* =====================================================
        EDIT
-    --------------------------- */
+    ====================================================== */
 
     else if (
-      action === "edit"
+      action ===
+      "edit"
     ) {
       const formData =
         await req.formData();
@@ -690,34 +926,59 @@ export async function PUT(
           ) || ""
         ).trim();
 
+      const rawStatus =
+        String(
+          formData.get(
+            "status"
+          ) ||
+          existingPost.status ||
+          "draft"
+        );
+
+      const status: PostStatus =
+        isValidStatus(
+          rawStatus
+        )
+          ? rawStatus
+          : "draft";
+
       const tags =
         formData
           .getAll(
             "tags"
           )
-          .map((tag) =>
-            String(
+          .map(
+            (
               tag
-            ).trim()
+            ) =>
+              String(
+                tag
+              ).trim()
           )
           .filter(
             Boolean
           );
 
       const imageFiles =
-        formData
-          .getAll(
-            "images"
-          )
-          .filter(
-            (
-              item
-            ): item is File =>
-              item instanceof
-              File &&
-              item.size >
-              0
-          );
+        getImageFiles(
+          formData
+        );
+
+      console.log(
+        "EDIT POST IMAGE FILES:",
+        imageFiles.map(
+          (file) => ({
+            name:
+              file.name,
+
+            type:
+              file.type,
+
+            size:
+              file.size,
+          })
+        )
+      );
 
       const update: Record<
         string,
@@ -725,7 +986,33 @@ export async function PUT(
       > = {
         updatedAt:
           now,
+
+        status,
+
+        published:
+          status ===
+          "published",
       };
+
+      /* -------------------------
+         Published date
+      -------------------------- */
+
+      if (
+        status ===
+        "published"
+      ) {
+        update.publishedAt =
+          existingPost.publishedAt ||
+          now;
+      } else {
+        update.publishedAt =
+          null;
+      }
+
+      /* -------------------------
+         Title
+      -------------------------- */
 
       if (title) {
         update.title =
@@ -744,25 +1031,28 @@ export async function PUT(
         }
       }
 
-      if (content) {
+      /* -------------------------
+         Content
+      -------------------------- */
+
+      if (
+        content
+      ) {
         update.content =
           content;
       }
 
-      /*
-       * We set tags even if
-       * empty so an admin can
-       * remove all tags.
-       */
+      /* -------------------------
+         Tags
+      -------------------------- */
+
       update.tags =
         tags;
 
-      /*
-       * If new images were
-       * selected, upload them
-       * to Blob and replace
-       * the post's image list.
-       */
+      /* -------------------------
+         New Images
+      -------------------------- */
+
       if (
         imageFiles.length >
         0
@@ -773,6 +1063,11 @@ export async function PUT(
             userId
           );
 
+        console.log(
+          "EDIT VERCEL BLOB URLS:",
+          newImageUrls
+        );
+
         update.images =
           newImageUrls;
 
@@ -780,14 +1075,12 @@ export async function PUT(
           newImageUrls[0] ||
           "";
 
-        /*
-         * Delete the old Blob
-         * images after the new
-         * ones upload.
-         */
+        /* ---------------------
+           Existing images
+        ---------------------- */
+
         const oldImages:
-          | string[]
-          | undefined =
+          string[] =
           Array.isArray(
             existingPost.images
           )
@@ -798,79 +1091,118 @@ export async function PUT(
               ]
               : [];
 
-        const blobImages =
-          oldImages.filter(
-            (
-              url
-            ) =>
-              typeof url ===
-              "string" &&
-              url.includes(
-                ".blob.vercel-storage.com"
-              )
+        /*
+         * Update Mongo first.
+         * We delete the old
+         * Blob only after the
+         * DB update succeeds.
+         */
+
+        const result =
+          await posts.updateOne(
+            {
+              _id,
+
+              author:
+                userId,
+            },
+            {
+              $set:
+                update,
+            }
           );
 
         if (
-          blobImages.length >
-          0
+          result.matchedCount !==
+          1
         ) {
-          try {
-            await del(
-              blobImages
-            );
-          } catch (
-          blobDeleteError
-          ) {
-            console.error(
-              "Old Blob cleanup failed:",
-              blobDeleteError
-            );
-          }
-        }
-      }
+          /*
+           * DB update failed.
+           * Clean up the newly
+           * uploaded files.
+           */
 
-      await posts.updateOne(
-        {
-          _id,
-          author:
-            userId,
-        },
-        {
-          $set: update,
+          await deleteBlobImages(
+            newImageUrls
+          );
+
+          throw new Error(
+            "Failed to update post"
+          );
         }
-      );
+
+        /*
+         * DB now points at the
+         * new image, so old
+         * images can be removed.
+         */
+
+        await deleteBlobImages(
+          oldImages
+        );
+      } else {
+        /*
+         * No new image.
+         * Preserve existing
+         * image and update the
+         * other post fields.
+         */
+
+        await posts.updateOne(
+          {
+            _id,
+
+            author:
+              userId,
+          },
+          {
+            $set:
+              update,
+          }
+        );
+      }
     } else {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Invalid action",
         },
         {
-          status: 400,
+          status:
+            400,
         }
       );
     }
 
     const updatedPost =
-      await posts.findOne({
-        _id,
-        author: userId,
-      });
+      await posts.findOne(
+        {
+          _id,
 
-    return NextResponse.json({
-      success: true,
+          author:
+            userId,
+        }
+      );
 
-      message:
-        `Post ${action} successful`,
+    return NextResponse.json(
+      {
+        success:
+          true,
 
-      post:
-        updatedPost
-          ? serializePost(
-            updatedPost
-          )
-          : null,
-    });
+        message:
+          `Post ${action} successful`,
+
+        post:
+          updatedPost
+            ? serializePost(
+              updatedPost
+            )
+            : null,
+      }
+    );
   } catch (error) {
     console.error(
       "PUT /api/dashpost:",
@@ -879,24 +1211,28 @@ export async function PUT(
 
     return NextResponse.json(
       {
-        success: false,
+        success:
+          false,
+
         error:
           "Failed to modify post",
 
         details:
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : "Unknown error",
       },
       {
-        status: 500,
+        status:
+          500,
       }
     );
   }
 }
 
 /* ============================================================
-   DELETE
+   DELETE POST
 ============================================================ */
 
 export async function DELETE(
@@ -908,11 +1244,15 @@ export async function DELETE(
   if (!userId) {
     return NextResponse.json(
       {
-        success: false,
-        error: "Unauthorized",
+        success:
+          false,
+
+        error:
+          "Unauthorized",
       },
       {
-        status: 401,
+        status:
+          401,
       }
     );
   }
@@ -928,7 +1268,10 @@ export async function DELETE(
 
     const {
       searchParams,
-    } = new URL(req.url);
+    } =
+      new URL(
+        req.url
+      );
 
     const postId =
       searchParams.get(
@@ -943,12 +1286,15 @@ export async function DELETE(
     ) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Valid post ID is required",
         },
         {
-          status: 400,
+          status:
+            400,
         }
       );
     }
@@ -959,75 +1305,57 @@ export async function DELETE(
       );
 
     const post =
-      await posts.findOne({
-        _id,
-        author: userId,
-      });
+      await posts.findOne(
+        {
+          _id,
+
+          author:
+            userId,
+        }
+      );
 
     if (!post) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Post not found or you do not have permission to delete it",
         },
         {
-          status: 404,
+          status:
+            404,
         }
       );
     }
 
-    /*
-     * Delete associated Blob
-     * images first.
-     */
-    const imageUrls: string[] =
+    const imageUrls:
+      string[] =
       Array.isArray(
         post.images
       )
         ? post.images
         : post.image
-          ? [post.image]
+          ? [
+            post.image,
+          ]
           : [];
 
-    const blobUrls =
-      imageUrls.filter(
-        (url) =>
-          typeof url ===
-          "string" &&
-          url.includes(
-            ".blob.vercel-storage.com"
-          )
-      );
-
-    if (
-      blobUrls.length > 0
-    ) {
-      try {
-        await del(
-          blobUrls
-        );
-      } catch (
-      blobDeleteError
-      ) {
-        /*
-         * Don't prevent deletion
-         * of the database record
-         * because Blob cleanup
-         * failed.
-         */
-        console.error(
-          "Blob cleanup failed:",
-          blobDeleteError
-        );
-      }
-    }
+    /*
+     * Delete database record
+     * first.
+     */
 
     const result =
-      await posts.deleteOne({
-        _id,
-        author: userId,
-      });
+      await posts.deleteOne(
+        {
+          _id,
+
+          author:
+            userId,
+        }
+      );
 
     if (
       result.deletedCount !==
@@ -1035,21 +1363,37 @@ export async function DELETE(
     ) {
       return NextResponse.json(
         {
-          success: false,
+          success:
+            false,
+
           error:
             "Failed to delete post",
         },
         {
-          status: 500,
+          status:
+            500,
         }
       );
     }
 
-    return NextResponse.json({
-      success: true,
-      message:
-        "Post deleted successfully",
-    });
+    /*
+     * Post is deleted.
+     * Now clean up Blob.
+     */
+
+    await deleteBlobImages(
+      imageUrls
+    );
+
+    return NextResponse.json(
+      {
+        success:
+          true,
+
+        message:
+          "Post deleted successfully",
+      }
+    );
   } catch (error) {
     console.error(
       "DELETE /api/dashpost:",
@@ -1058,17 +1402,21 @@ export async function DELETE(
 
     return NextResponse.json(
       {
-        success: false,
+        success:
+          false,
+
         error:
           "Failed to delete post",
 
         details:
-          error instanceof Error
+          error instanceof
+            Error
             ? error.message
             : "Unknown error",
       },
       {
-        status: 500,
+        status:
+          500,
       }
     );
   }

@@ -39,13 +39,24 @@ declare global {
     Clerk?: Clerk;
   }
 }
-
 interface Post {
-  _id: string;
+  id: string;
+
   title: string;
-  status: 'draft' | 'published' | 'scheduled';
+
+  status:
+  | "draft"
+  | "published"
+  | "scheduled";
+
   createdAt: string;
+
+  publishedAt?:
+  | string
+  | null;
+
   views?: number;
+
   author: string;
 }
 
@@ -182,7 +193,7 @@ const Dashboard = () => {
       if (response.ok) {
         // Update the local state to reflect the change
         setPosts(posts.map(post =>
-          post._id === postId
+          post.id === postId
             ? { ...post, status: 'published', publishedAt: new Date().toISOString() }
             : post
         ));
@@ -208,7 +219,7 @@ const Dashboard = () => {
       if (response.ok) {
         // Update the local state to reflect the change
         setPosts(posts.map(post =>
-          post._id === postId
+          post.id === postId
             ? { ...post, status: 'draft', publishedAt: undefined }
             : post
         ));
@@ -237,7 +248,7 @@ const Dashboard = () => {
 
       if (response.ok) {
         // Remove the post from local state
-        setPosts(posts.filter(post => post._id !== postId));
+        setPosts(posts.filter(post => post.id !== postId));
       } else {
         console.error('Failed to delete post:', data.error);
         alert(data.error || 'Failed to delete post');
@@ -458,7 +469,7 @@ const Dashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {posts.slice(0, 4).map((post) => (
-                    <tr key={post._id} className="hover:bg-gray-50">
+                    <tr key={post.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900">{post.title}</div>
                       </td>
@@ -534,7 +545,7 @@ const Dashboard = () => {
                 </thead>
                 <tbody className="divide-y divide-gray-200">
                   {posts.map((post) => (
-                    <tr key={post._id} className="hover:bg-gray-50">
+                    <tr key={post.id} className="hover:bg-gray-50">
                       <td className="px-6 py-4">
                         <div className="font-medium text-gray-900">{post.title}</div>
                       </td>
@@ -561,7 +572,7 @@ const Dashboard = () => {
                           {/* Edit button */}
                           <button
                             onClick={() => {
-                              window.location.href = `/Dashboard/edit/${post._id}`;
+                              window.location.href = `/Dashboard/edit/${post.id}`;
                             }}
                             className="text-blue-600 hover:text-blue-800"
                           >
@@ -571,14 +582,14 @@ const Dashboard = () => {
                           {/* Publish/Unpublish button */}
                           {post.status === 'draft' ? (
                             <button
-                              onClick={() => handlePublishPost(post._id)}
+                              onClick={() => handlePublishPost(post.id)}
                               className="text-green-600 hover:text-green-800"
                             >
                               Publish
                             </button>
                           ) : (
                             <button
-                              onClick={() => handleUnpublishPost(post._id)}
+                              onClick={() => handleUnpublishPost(post.id)}
                               className="text-yellow-600 hover:text-yellow-800"
                             >
                               Unpublish
@@ -587,7 +598,7 @@ const Dashboard = () => {
 
                           {/* Delete button */}
                           <button
-                            onClick={() => handleDeletePost(post._id)}
+                            onClick={() => handleDeletePost(post.id)}
                             className="text-red-600 hover:text-red-800"
                           >
                             Delete
