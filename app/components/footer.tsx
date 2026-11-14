@@ -5,6 +5,9 @@ import { getTranslations } from "./translations";
 import Image from "next/image";
 import Link from "next/link";
 
+import MediaDariFooterLinks from "./MediaDariFooterLinks";
+
+
 import {
     ArrowRight,
     ArrowUpRight,
@@ -643,6 +646,9 @@ export default function Footer() {
                             {t.footer.privacyPractices}
                         </Link>
                     </div>
+
+                    <MediaDariFooterLinks />
+
                 </div>
             </div>
         </footer>
