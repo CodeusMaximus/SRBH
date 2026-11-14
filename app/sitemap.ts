@@ -4,20 +4,40 @@ import type { MetadataRoute } from "next";
 const SITE_URL = "https://srnpp.com";
 
 export default function sitemap(): MetadataRoute.Sitemap {
-    const pages = [
-        "/",
-        "/about-us",
-
-        // Add other existing public routes here:
-        // "/services",
-        // "/contact",
-        // "/provider",
-        // "/blog",
+    const publicPages = [
+        {
+            path: "/",
+            priority: 1.0,
+        },
+        {
+            path: "/blog",
+            priority: 0.9,
+        },
+        {
+            path: "/Provider",
+            priority: 0.8,
+        },
+        {
+            path: "/services/medication-management",
+            priority: 0.9,
+        },
+        {
+            path: "/services/psychiatric-evaluation",
+            priority: 0.9,
+        },
+        {
+            path: "/services/psychopharmacology",
+            priority: 0.9,
+        },
+        {
+            path: "/services/telehealth",
+            priority: 0.9,
+        },
     ];
 
-    return pages.map((path) => ({
-        url: `${SITE_URL}${path}`,
-        changeFrequency: "monthly",
-        priority: path === "/" ? 1.0 : 0.8,
+    return publicPages.map((page) => ({
+        url: `${SITE_URL}${page.path}`,
+        changeFrequency: "monthly" as const,
+        priority: page.priority,
     }));
 }
